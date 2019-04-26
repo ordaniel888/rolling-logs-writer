@@ -1,33 +1,27 @@
 package FileSink;
 
-import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Optional;
+import Configuration.Configuration;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import Configuration.Configuration;
 
 public class DiskFileSink implements FileSink{
 
-    private final String filePath;
+    private RollingFile rollingFile;
     private final ExecutorService writingExecutor;
     private final LinkedBlockingQueue<String> messagesQueue;
-    private final int rollingFilesNumber;
-    private final int filesMaxFileSizeBytes;
-
-    private Optional<FileOutputStream> currLogFile;
-    private RollingNumber currFileNumber;
 
     private static DiskFileSink instance;
 
-    public static DiskFileSink instance() {
+    public static DiskFileSink instance() throws IOException {
         if (instance == null) {
             synchronized (FileSink.class) {
                 if (instance == null) {
-                    return new DiskFileSink(Configuration.DIR_PATH,
+                    instance = new DiskFileSink(Configuration.DIR_PATH,
                             Configuration.FILE_NAME,
                             Configuration.MAX_FILE_SIZE_BYTES,
                             Configuration.ROLLING_FILES_NUMBER);
@@ -37,14 +31,10 @@ public class DiskFileSink implements FileSink{
         return instance;
     }
 
-    private DiskFileSink(String directoryPath, String fileName, int maxFileSizeBytes, int rollingFilesNumber) {
-        this.filePath = directoryPath + fileName;
-        this.filesMaxFileSizeBytes = maxFileSizeBytes;
-        this.rollingFilesNumber = rollingFilesNumber;
-        this.currFileNumber = new RollingNumber(rollingFilesNumber);
+    private DiskFileSink(String directoryPath, String fileName, int maxFileSizeBytes, int rollingFilesNumber) throws IOException {
+        this.rollingFile = new RollingFile(directoryPath, fileName, maxFileSizeBytes, rollingFilesNumber);
         this.writingExecutor = Executors.newSingleThreadExecutor();
         this.messagesQueue = new LinkedBlockingQueue<>();
-        this.currLogFile = Optional.empty();
         this.startConsuming();
     }
 
@@ -65,7 +55,7 @@ public class DiskFileSink implements FileSink{
 
     private void writeToFile(String logMessage) throws IOException {
 
-        FileOutputStream outputStream = getCurrentLogFile();
+        FileOutputStream outputStream = this.rollingFile.get();
         logMessage = logMessage + System.lineSeparator();
         byte[] strToBytes = logMessage.getBytes();
         outputStream.write(strToBytes);
@@ -73,23 +63,5 @@ public class DiskFileSink implements FileSink{
 
     public void write(String logMessage) {
         CompletableFuture.supplyAsync(() -> messagesQueue.add(logMessage));
-    }
-
-    public FileOutputStream getCurrentLogFile() throws IOException {
-        if (!currLogFile.isPresent()) {
-            this.currLogFile = createNewFile();
-        } else if (new File(this.filePath).length() >= this.filesMaxFileSizeBytes){
-            this.currLogFile.get().close();
-            this.currLogFile = createNewFile();
-        }
-
-        return this.currLogFile.get();
-    }
-
-    private Optional<FileOutputStream> createNewFile() throws FileNotFoundException {
-        //Get the file reference
-        String currLogFile = String.format(filePath, currFileNumber.getAndIncrement());
-        Path path = Paths.get(currLogFile);
-        return Optional.of(new FileOutputStream(path.toString()));
     }
 }

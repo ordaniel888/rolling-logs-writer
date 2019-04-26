@@ -2,19 +2,16 @@ package FileSink;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.io.IOException;
 
 class DiskFileSinkTest {
 
     @Test
-    void writeCase() throws InterruptedException {
+    void writeCase() throws InterruptedException, IOException {
         FileSink fileSink = DiskFileSink.instance();
-        fileSink.write("hello World!");
-        fileSink.write("hello World!");
-        fileSink.write("hello World!");
-        fileSink.write("hello World!!!!");
-        fileSink.write("hello World!");
-        fileSink.write("hello World!");
-        Thread.sleep(6000);
+        for (int i = 1; i <= 1000; i ++) {
+            fileSink.write("log record " + i);
+        }
+        Thread.sleep(35000);
     }
 }

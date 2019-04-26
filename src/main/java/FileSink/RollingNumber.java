@@ -15,9 +15,16 @@ public class RollingNumber {
         this.maxValue = maxValue;
     }
 
-    public int getAndIncrement() {
-        int oldValue = this.value;
-        this.value = ((oldValue + 1) % (maxValue)) + startValue;
-        return oldValue;
+    public int get() {
+        return value;
+    }
+
+    public int increment() {
+        if (value < maxValue) {
+            value ++;
+        } else {
+            value = startValue;
+        }
+        return value;
     }
 }

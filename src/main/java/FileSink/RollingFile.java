@@ -22,7 +22,7 @@ public class RollingFile {
     }
 
     public long size() throws IOException {
-        return Files.size(getFilePathByNumber(rollingNumber.get()));
+        return Files.size(getFilePathByNumber(rollingNumber.currentValue()));
     }
 
     private void roll() throws IOException {
@@ -33,7 +33,8 @@ public class RollingFile {
     }
 
     private FileOutputStream createNewFile() throws FileNotFoundException {
-        return new FileOutputStream(getFilePathByNumber(rollingNumber.get()).toString());
+        String filePath = getFilePathByNumber(rollingNumber.currentValue()).toString();
+        return new FileOutputStream(filePath);
     }
 
     private Path getFilePathByNumber(int fileNumber) {

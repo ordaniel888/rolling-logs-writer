@@ -12,8 +12,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class DiskFileSink implements FileSink{
 
     private RollingFile rollingFile;
-    private final ExecutorService writingExecutor;
-    private final LinkedBlockingQueue<String> messagesQueue;
+    private final ExecutorService writingExecutor = Executors.newSingleThreadExecutor();
+    private final LinkedBlockingQueue<String> messagesQueue = new LinkedBlockingQueue<>();
 
     private static DiskFileSink instance;
 
@@ -32,15 +32,12 @@ public class DiskFileSink implements FileSink{
     }
 
     private DiskFileSink(String directoryPath, String fileName, int maxFileSizeBytes, int rollingFilesNumber) throws IOException {
-        this.rollingFile = new RollingFile(directoryPath, fileName, maxFileSizeBytes, rollingFilesNumber);
-        this.writingExecutor = Executors.newSingleThreadExecutor();
-        this.messagesQueue = new LinkedBlockingQueue<>();
-        this.startConsuming();
+        rollingFile = new RollingFile(directoryPath, fileName, maxFileSizeBytes, rollingFilesNumber);
+        startConsuming();
     }
 
     private void startConsuming() {
-        CompletableFuture.runAsync(() -> {
-
+        writingExecutor.execute(() -> {
             while (true) {
                 try {
                     String logMessage = messagesQueue.take();
@@ -49,8 +46,7 @@ public class DiskFileSink implements FileSink{
                     e.printStackTrace();
                 }
             }
-
-        }, writingExecutor);
+        });
     }
 
     private void writeToFile(String logMessage) throws IOException {
@@ -62,6 +58,6 @@ public class DiskFileSink implements FileSink{
     }
 
     public void write(String logMessage) {
-        CompletableFuture.supplyAsync(() -> messagesQueue.add(logMessage));
+        CompletableFuture.runAsync(() -> messagesQueue.add(logMessage));
     }
 }

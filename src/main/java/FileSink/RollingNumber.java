@@ -1,7 +1,7 @@
 package FileSink;
 
 public class RollingNumber {
-    private int value;
+    private int currentValue;
     private int startValue;
     private int maxValue;
 
@@ -10,21 +10,21 @@ public class RollingNumber {
     }
 
     public RollingNumber(int startValue, int maxValue) {
-        this.value = startValue;
+        this.currentValue = startValue;
         this.startValue = startValue;
         this.maxValue = maxValue;
     }
 
-    public int get() {
-        return value;
+    public int currentValue() {
+        return currentValue;
     }
 
     public int increment() {
-        if (value < maxValue) {
-            value ++;
+        if (currentValue < maxValue) {
+            currentValue++;
         } else {
-            value = startValue;
+            currentValue = startValue;
         }
-        return value;
+        return currentValue;
     }
 }

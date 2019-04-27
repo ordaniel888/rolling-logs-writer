@@ -11,8 +11,8 @@ public class RollingFile {
 
     private final String filePath;
     private final int filesMaxFileSizeBytes;
+    private final RollingNumber rollingNumber;
     private FileOutputStream currFile;
-    private RollingNumber rollingNumber;
 
     public RollingFile(String directoryPath, String fileName, int maxFileSizeBytes, int rollingFilesNumber) throws IOException {
         this.filePath = directoryPath + fileName;

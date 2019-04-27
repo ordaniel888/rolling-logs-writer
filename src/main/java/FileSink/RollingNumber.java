@@ -1,9 +1,9 @@
 package FileSink;
 
 public class RollingNumber {
+    private final int startValue;
+    private final int maxValue;
     private int currentValue;
-    private int startValue;
-    private int maxValue;
 
     public RollingNumber(int maxValue) {
         this(1, maxValue);

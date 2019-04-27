@@ -21,7 +21,7 @@ public class RollingFile {
         this.currFile = createNewFile();
     }
 
-    public long size() throws IOException {
+    private long size() throws IOException {
         return Files.size(getFilePathByNumber(rollingNumber.currentValue()));
     }
 

@@ -4,16 +4,13 @@ import Configuration.Configuration;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 public class DiskFileSink implements FileSink{
 
     private RollingFile rollingFile;
     private final ExecutorService writingExecutor = Executors.newSingleThreadExecutor();
-    private final LinkedBlockingQueue<String> messagesQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<String> messagesQueue = new LinkedBlockingQueue<>();
 
     private static DiskFileSink instance;
 
@@ -57,6 +54,7 @@ public class DiskFileSink implements FileSink{
         outputStream.write(strToBytes);
     }
 
+    @Override
     public void write(String logMessage) {
         CompletableFuture.runAsync(() -> messagesQueue.add(logMessage));
     }
